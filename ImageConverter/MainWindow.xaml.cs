@@ -31,6 +31,7 @@ namespace ImageConverter
         private ImageFormat originFormat;
         private ImageFormat targetFormat;
         private string currentDirectory;
+        private string[] subDirectorys;
         private List<string> imageFiles;
 
         #region Counters for each Format for each Thread
@@ -59,6 +60,7 @@ namespace ImageConverter
         private int finishedThreads = 0;
 
         private bool? delete;
+        private bool? subfolder;
 
         public delegate void Del(List<string> files);
 
@@ -74,6 +76,9 @@ namespace ImageConverter
             currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
             delete = true;
+            subfolder = false;
+
+            subDirectorys = new string[0];
         }
 
         private void FillFormatList()
@@ -105,6 +110,14 @@ namespace ImageConverter
 
         public void ConvertImage(string imagename, System.Drawing.Imaging.ImageFormat targetFormat, bool? delete)
         {
+            // get all datetime information of the image
+            DateTime creationTime = File.GetCreationTime(imagename);
+            DateTime creationTimeUtc = File.GetCreationTimeUtc(imagename);
+            DateTime lastAccessTime = File.GetLastAccessTime(imagename);
+            DateTime lastAccessTimeUtc = File.GetLastAccessTimeUtc(imagename);
+            DateTime lastWriteTime = File.GetLastWriteTime(imagename);
+            DateTime lastWriteTimeUtc = File.GetLastWriteTimeUtc(imagename);
+
             string[] splits = imagename.Split('.');
             string path = splits[0];
             for (int i = 1; i < splits.Length - 1; i++)
@@ -127,6 +140,15 @@ namespace ImageConverter
             File.Move(path + nameOnly + oldFileEnding, path + deleteName + nameOnly + oldFileEnding);
             Bitmap image = new Bitmap(path + deleteName + nameOnly + oldFileEnding);
             image.Save(path + nameOnly + newFileEnding, targetFormat);
+
+            // set all datetime information
+            File.SetCreationTime(path + nameOnly + newFileEnding, creationTime);
+            File.SetCreationTimeUtc(path + nameOnly + newFileEnding, creationTimeUtc);
+            File.SetLastAccessTime(path + nameOnly + newFileEnding, lastAccessTime);
+            File.SetLastAccessTimeUtc(path + nameOnly + newFileEnding, lastAccessTimeUtc);
+            File.SetLastWriteTime(path + nameOnly + newFileEnding, lastWriteTime);
+            File.SetLastWriteTimeUtc(path + nameOnly + newFileEnding, lastWriteTimeUtc);
+
             image.Dispose();
             if (delete == true)
                 File.Delete(path + deleteName + nameOnly + oldFileEnding);
@@ -168,6 +190,12 @@ namespace ImageConverter
 
         private void button_Convert(object sender, RoutedEventArgs e)
         {
+            if (subfolder == true)
+            {
+                // get all subfolders
+                subDirectorys = Directory.GetDirectories(currentDirectory, "*", SearchOption.AllDirectories);
+            }
+
             // reset counters
             bmp = 0;
             emf = 0;
@@ -181,70 +209,78 @@ namespace ImageConverter
             countAllCurrent = 0;
             countAllPast = 0;
 
-            // get all files
-            string[] files = Directory.GetFiles(currentDirectory);
-
             // new list of strings
             imageFiles = new List<string>();
 
-            string[] splits;
-            // get all images
-            for (int i = 0; i < files.Length; i++)
+            for (int j = 0; j < subDirectorys.Length + 1; j++)
             {
-                splits = files[i].Split('.');
+                string[] files = new string[0];
 
-                switch (splits[splits.Length - 1].ToUpper())
+                // get all files
+                if (j == 0)
+                    files = Directory.GetFiles(currentDirectory);
+                else
+                    files = Directory.GetFiles(subDirectorys[j - 1]);
+
+                string[] splits;
+                // get all images
+                for (int i = 0; i < files.Length; i++)
                 {
-                    case "BMP":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.BMP || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "EMF":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.EMF || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "EXIF":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.EXIF || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "ICO":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.ICO || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "JPG":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.JPG || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "JPEG":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.JPG || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "JPG_LARGE":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.JPG || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "PNG":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.PNG || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "TIFF":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.TIFF || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
-                    case "WMF":
-                        imageFiles.Add(files[i]);
-                        if (originFormat == ImageFormat.WMF || originFormat == ImageFormat.ALL)
-                            amount++;
-                        continue;
+                    splits = files[i].Split('.');
+
+                    switch (splits[splits.Length - 1].ToUpper())
+                    {
+                        case "BMP":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.BMP || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "EMF":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.EMF || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "EXIF":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.EXIF || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "ICO":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.ICO || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "JPG":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.JPG || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "JPEG":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.JPG || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "JPG_LARGE":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.JPG || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "PNG":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.PNG || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "TIFF":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.TIFF || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                        case "WMF":
+                            imageFiles.Add(files[i]);
+                            if (originFormat == ImageFormat.WMF || originFormat == ImageFormat.ALL)
+                                amount++;
+                            continue;
+                    }
                 }
             }
 
@@ -372,7 +408,10 @@ namespace ImageConverter
         {
             Dispatcher.Invoke(() =>
             {
-                loadingWindow.UpdateTime(DateTime.Now - startTime, "busy for:", false);
+                if (loadingWindow != null)
+                {
+                    loadingWindow.UpdateTime(DateTime.Now - startTime, "busy for:", false);
+                }
             });
         }
 
@@ -737,6 +776,11 @@ namespace ImageConverter
         private void cb_deleteOldFiles_Checked(object sender, RoutedEventArgs e)
         {
             delete = ((CheckBox)sender).IsChecked;
+        }
+
+        private void cb_subfolder_Checked(object sender, RoutedEventArgs e)
+        {
+            subfolder = ((CheckBox)sender).IsChecked;
         }
     }
 }

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ImageConverter"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="" Height="154" Width="394" Background="#FF1A1A1A" WindowStyle="None" ResizeMode="NoResize" BorderBrush="Black" BorderThickness="1">
+        Title="" Height="160" Width="394" Background="#FF1A1A1A" WindowStyle="None" ResizeMode="NoResize" BorderBrush="Black" BorderThickness="1">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="25"/>
@@ -251,10 +251,15 @@
             </DockPanel>
         </DockPanel>
         <DockPanel DockPanel.Dock="Top" Margin="10,0,10,0">
-            <CheckBox x:Name="cb_deleteOldFiles" Height="25" IsChecked="True" Checked="cb_deleteOldFiles_Checked">
-                <Label Foreground="White" Content="Delete old Files" Padding="0"/>
-            </CheckBox>
-            <Button Style="{DynamicResource ButtonStyleOwn}" x:Name="b_Convert" Background="#FF3A3A3A" Foreground="White" Margin="10,0,0,10" Content="Convert" Click="button_Convert" IsEnabled="False"/>
+            <DockPanel>
+                <CheckBox DockPanel.Dock="Top" x:Name="cb_deleteOldFiles" Height="20" IsChecked="True" Checked="cb_deleteOldFiles_Checked">
+                    <Label Foreground="White" Content="Delete old Files" Padding="0"/>
+                </CheckBox>
+                <CheckBox DockPanel.Dock="Top" x:Name="cb_subfolder" Height="20" IsChecked="False" Checked="cb_subfolder_Checked">
+                    <Label Foreground="White" Content="Subfolders" Padding="0"/>
+                </CheckBox>
+            </DockPanel>
+            <Button Style="{DynamicResource ButtonStyleOwn}" x:Name="b_Convert" Background="#FF3A3A3A" Foreground="White" Margin="10,0,0,5" Content="Convert" Click="button_Convert" IsEnabled="False"/>
         </DockPanel>
     </DockPanel>
 </Window>
